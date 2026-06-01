@@ -322,7 +322,7 @@ function setIdleUI() {
   clearInterval(localTickInterval);
   clearTimeout(localTickInterval);
   localTickInterval = null;
-  spokenStepId = null;
+  // לא מאפסים spokenStepId כאן — רק ב-adminReset
   document.getElementById('phaseLabel').textContent = 'ממתין להתחלה';
   document.getElementById('timerDisplay').textContent = '--:--';
   document.getElementById('timerDisplay').className = 'timer-display idle';
@@ -494,10 +494,12 @@ async function init() {
     const prevRunning = currentState?.running;
     const prevStepId  = currentState?.stepId;
     const changed = s.running !== prevRunning || s.stepId !== prevStepId;
-    // תמיד עדכן UI — גם לפני unlock (ללא קול)
-    // renderState עצמו מטפל בקול רק אם audioUnlocked
-    if (changed) renderState(s);
-    // גם אם אין שינוי בשלב — עדכן currentState כדי שה-tick יהיה מדויק
+    if (changed) {
+      // צופים — תמיד מעדכנים
+      // מנהל — רק אם השינוי הגיע מבחוץ (לא ממנו עצמו)
+      if (mode !== 'admin') renderState(s);
+      else if (s.stepId !== spokenStepId) renderState(s);
+    }
     if (!changed && s.running) currentState = s;
   }, 2000);
 }
