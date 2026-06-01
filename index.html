@@ -41,6 +41,35 @@
     background-size: 48px 48px;
     pointer-events: none;
   }
+
+  /* Sound gate */
+  .sound-gate {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .sound-gate h2 { font-size: 22px; font-weight: 700; }
+  .sound-gate p  { font-size: 14px; color: var(--muted); text-align: center; max-width: 300px; line-height: 1.6; }
+  .btn-sound {
+    background: var(--accent);
+    color: #0a0a0f;
+    border: none;
+    border-radius: 10px;
+    padding: 14px 36px;
+    font-family: 'Heebo', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: filter 0.2s;
+  }
+  .btn-sound:hover { filter: brightness(1.15); }
+
   .card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -62,9 +91,9 @@
     background: var(--accent-dim);
     border: 1px solid var(--accent);
     color: var(--accent);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
-    padding: 4px 12px;
+    padding: 5px 14px;
     border-radius: 20px;
   }
   .phase-label {
@@ -123,8 +152,8 @@
     color: var(--muted);
     transition: all 0.3s;
   }
-  .step-item.done { color: var(--muted); text-decoration: line-through; }
-  .step-item.active { background: var(--accent-dim); color: var(--accent); font-weight: 700; }
+  .step-item.done     { color: var(--muted); text-decoration: line-through; }
+  .step-item.active   { background: var(--accent-dim); color: var(--accent); font-weight: 700; }
   .step-item.upcoming { color: var(--text); }
   .step-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
   .btn-row { display: flex; gap: 10px; }
@@ -161,7 +190,7 @@
   .overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.88);
+    background: rgba(0,0,0,0.9);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -188,6 +217,13 @@
 </style>
 </head>
 <body>
+
+<!-- Sound gate — כל משתמש חייב ללחוץ פעם אחת -->
+<div class="sound-gate" id="soundGate">
+  <h2>יום תחנות 🏥</h2>
+  <p>לחצי להפעלת הקול — הדפדפן דורש לחיצה לפני הפעלת שמע</p>
+  <button class="btn-sound" onclick="unlockAudio()">▶ כניסה</button>
+</div>
 
 <div class="overlay" id="overlay">
   <div class="overlay-text" id="overlayText"></div>
@@ -224,46 +260,60 @@
 </div>
 
 <script>
-// =============================================
 const SUPABASE_URL = 'https://kdmreoiusoowugsrbvzf.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkbXJlb2l1c29vd3Vnc3JidnpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMDE3NDcsImV4cCI6MjA5NTg3Nzc0N30.F-B3Jb0l8Owq-LxMThJRthBTQG1W5Th9KDjRYjDhJ_c';
-const ROW_ID = 1; // ה-id של השורה שיצרנו
-// =============================================
+const ROW_ID = 1;
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
 const ANNOUNCE_DELAY = 4;
+let audioUnlocked = false;
 
 function buildSequence() {
   const seq = [];
   seq.push({ type: 'announce', text: 'התחלת יום תחנות', id: 'open' });
-  seq.push({ type: 'timer',    text: 'קריאת הנחיות', duration: 150, id: 'instructions' });
+  seq.push({ type: 'timer', text: 'קריאת הנחיות', duration: 150, id: 'instructions' });
   for (let r = 1; r <= 6; r++) {
     seq.push({ type: 'announce', text: 'כניסה לתחנה', id: `enter_${r}`, round: r });
-    seq.push({ type: 'timer',    text: 'זמן בתחנה',   duration: 300, id: `t1_${r}`, round: r });
+    seq.push({ type: 'timer',   text: 'זמן בתחנה',   duration: 300, id: `t1_${r}`, round: r });
     seq.push({ type: 'announce', text: 'עברו 5 דקות', id: `mid_${r}`, round: r });
-    seq.push({ type: 'timer',    text: 'זמן נוסף',    duration: 300, id: `t2_${r}`, round: r });
+    seq.push({ type: 'timer',   text: 'זמן נוסף',    duration: 300, id: `t2_${r}`, round: r });
     seq.push({ type: 'announce', text: r < 6 ? 'יציאה מהתחנה ומעבר לתחנה הבאה' : 'יציאה מהתחנה האחרונה', id: `exit_${r}`, round: r });
   }
-  seq.push({ type: 'announce', text: 'סוף יום תחנות', id: 'close', isFinal: true });
+  seq.push({ type: 'announce', text: 'סוף יום תחנות', id: 'close' });
   return seq;
 }
 
 const SEQUENCE = buildSequence();
-
 let mode = 'viewer';
 let tickInterval = null;
 let announceTimeout = null;
 let lastStepId = null;
+let pendingState = null; // state שמחכה לאחר unlock
 
-// --- Helpers ---
+// --- Audio unlock ---
+function unlockAudio() {
+  // "warm up" speech synthesis with a silent utterance
+  const u = new SpeechSynthesisUtterance(' ');
+  u.volume = 0;
+  window.speechSynthesis.speak(u);
+  audioUnlocked = true;
+  document.getElementById('soundGate').style.display = 'none';
+
+  // אם כבר יש state שחיכה — נפעיל אותו עכשיו
+  if (pendingState) {
+    const s = pendingState;
+    pendingState = null;
+    applyState(s);
+  }
+}
+
 function fmt(sec) {
   if (sec < 0) sec = 0;
   return `${Math.floor(sec/60).toString().padStart(2,'0')}:${(sec%60).toString().padStart(2,'0')}`;
 }
 
 function speak(text) {
-  if (!window.speechSynthesis) return;
+  if (!audioUnlocked || !window.speechSynthesis) return;
   window.speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'he-IL';
@@ -278,12 +328,11 @@ function showOverlay(text, duration) {
   setTimeout(() => el.classList.remove('show'), duration * 1000 - 300);
 }
 
-// --- UI ---
 function setMode(m) {
   mode = m;
-  document.getElementById('btnViewer').classList.toggle('active', m==='viewer');
-  document.getElementById('btnAdmin').classList.toggle('active', m==='admin');
-  document.getElementById('adminSection').style.display = m==='admin' ? 'block' : 'none';
+  document.getElementById('btnViewer').classList.toggle('active', m === 'viewer');
+  document.getElementById('btnAdmin').classList.toggle('active', m === 'admin');
+  document.getElementById('adminSection').style.display = m === 'admin' ? 'block' : 'none';
 }
 
 function renderSteps(currentIdx) {
@@ -303,8 +352,7 @@ function renderSteps(currentIdx) {
 function updateTimerUI(remaining, total, step) {
   const disp = document.getElementById('timerDisplay');
   const fill = document.getElementById('progressFill');
-  const dot  = document.getElementById('statusDot');
-
+  document.getElementById('statusDot').className = 'status-dot live';
   document.getElementById('phaseLabel').textContent = step.text;
 
   if (step.type === 'announce') {
@@ -312,20 +360,14 @@ function updateTimerUI(remaining, total, step) {
     disp.className = 'timer-display idle';
     fill.style.width = '0%';
     fill.className = 'progress-fill';
-    dot.className = 'status-dot live';
     return;
   }
 
   disp.textContent = fmt(remaining);
-  const pct = total > 0 ? Math.max(0, (remaining / total) * 100) : 0;
-  fill.style.width = pct + '%';
-  dot.className = 'status-dot live';
-
-  let c = '';
-  if (remaining <= 30) c = 'danger';
-  else if (remaining <= total * 0.25) c = 'warn';
+  fill.style.width = Math.max(0, (remaining / total) * 100) + '%';
+  let c = remaining <= 30 ? 'danger' : remaining <= total * 0.25 ? 'warn' : '';
   disp.className = 'timer-display ' + c;
-  fill.className = 'progress-fill ' + c;
+  fill.className  = 'progress-fill ' + c;
 }
 
 function updateRoundBadge(round) {
@@ -346,7 +388,6 @@ function setIdleUI() {
   clearTimeout(announceTimeout);
 }
 
-// --- Supabase ---
 async function writeState(state) {
   await sb.from('timer_state').update({ state }).eq('id', ROW_ID);
 }
@@ -356,16 +397,23 @@ async function readState() {
   return data?.state || null;
 }
 
-// --- Apply state ---
 function applyState(state) {
+  // אם המשתמש עדיין לא ביצע unlock — שמור ותמתין
+  if (!audioUnlocked) {
+    pendingState = state;
+    return;
+  }
+
   if (!state || !state.running) { setIdleUI(); lastStepId = null; return; }
 
   const idx = state.stepIndex;
   if (idx >= SEQUENCE.length) { setIdleUI(); return; }
 
   const step = SEQUENCE[idx];
-  renderSteps(idx);
+
+  // עדכן badge סבב — לכולם
   updateRoundBadge(step.round || null);
+  renderSteps(idx);
 
   const isNewStep = state.stepId !== lastStepId;
 
@@ -380,14 +428,13 @@ function applyState(state) {
       updateTimerUI(0, 0, step);
 
       if (mode === 'admin') {
-        const elapsed = Date.now()/1000 - state.stepStart;
+        const elapsed = Date.now() / 1000 - state.stepStart;
         const wait = Math.max(0, ANNOUNCE_DELAY - elapsed);
         announceTimeout = setTimeout(() => advanceStep(state), wait * 1000);
       }
     } else {
-      // Start local tick
       tickInterval = setInterval(() => {
-        const elapsed = Date.now()/1000 - state.stepStart;
+        const elapsed = Date.now() / 1000 - state.stepStart;
         const remaining = Math.max(0, Math.round(step.duration - elapsed));
         updateTimerUI(remaining, step.duration, step);
         if (remaining <= 0) {
@@ -413,20 +460,19 @@ async function advanceStep(state) {
     running: true,
     stepIndex: nextIdx,
     stepId: nextStep.id,
-    stepStart: Date.now()/1000
+    stepStart: Date.now() / 1000
   };
   await writeState(newState);
   applyState(newState);
 }
 
-// --- Admin ---
 async function adminStart() {
   const firstStep = SEQUENCE[0];
   const state = {
     running: true,
     stepIndex: 0,
     stepId: firstStep.id,
-    stepStart: Date.now()/1000
+    stepStart: Date.now() / 1000
   };
   await writeState(state);
   applyState(state);
@@ -444,21 +490,19 @@ async function adminReset() {
   document.getElementById('btnStart').disabled = false;
 }
 
-// --- Init + Realtime ---
 async function init() {
-  // Read initial state
   const state = await readState();
-  if (state) applyState(state);
+  // לא מפעילים applyState לפני unlock — שומרים כ-pending
+  if (state) pendingState = state;
 
-  // Subscribe to real-time changes
-  sb.channel('timer_state')
+  sb.channel('timer_changes')
     .on('postgres_changes', {
       event: 'UPDATE',
       schema: 'public',
       table: 'timer_state'
     }, payload => {
       const newState = payload.new?.state;
-      if (newState) applyState(newState);
+      if (newState && newState.stepId !== lastStepId) applyState(newState);
     })
     .subscribe(status => {
       const el = document.getElementById('connStatus');
