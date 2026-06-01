@@ -472,7 +472,7 @@ async function init() {
   pickVoice();
 
   const state = await readState();
-  currentState = state; // שמור, יופעל אחרי unlock
+  if (state) renderState(state); // הצג מיד בטעינה
 
   // Polling כל 2 שניות
   document.getElementById('connStatus').textContent = '● מחובר';
@@ -481,12 +481,14 @@ async function init() {
   setInterval(async () => {
     const s = await readState();
     if (!s) return;
-    // אם running השתנה או stepId השתנה — עדכן
     const prevRunning = currentState?.running;
     const prevStepId  = currentState?.stepId;
-    if (s.running !== prevRunning || s.stepId !== prevStepId) {
-      renderState(s);
-    }
+    const changed = s.running !== prevRunning || s.stepId !== prevStepId;
+    // תמיד עדכן UI — גם לפני unlock (ללא קול)
+    // renderState עצמו מטפל בקול רק אם audioUnlocked
+    if (changed) renderState(s);
+    // גם אם אין שינוי בשלב — עדכן currentState כדי שה-tick יהיה מדויק
+    if (!changed && s.running) currentState = s;
   }, 2000);
 }
 
