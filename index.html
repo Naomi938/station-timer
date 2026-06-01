@@ -354,10 +354,18 @@ function renderState(state) {
   if (idx >= SEQUENCE.length) { setIdleUI(); return; }
   const step = SEQUENCE[idx];
 
-  // Badge סבב — לכולם
+  // Badge סבב — לכולם (שמור סבב אחרון)
   const b = document.getElementById('roundBadge');
-  if (step.round) { b.textContent = `סבב ${step.round} / 6`; b.style.display = ''; }
-  else b.style.display = 'none';
+  if (step.round) {
+    window._lastRound = step.round;
+    b.textContent = `סבב ${step.round} / 6`;
+    b.style.display = '';
+  } else if (window._lastRound && state.running) {
+    b.textContent = `סבב ${window._lastRound} / 6`;
+    b.style.display = '';
+  } else {
+    b.style.display = 'none';
+  }
 
   renderSteps(idx);
   document.getElementById('statusDot').className = 'status-dot live';
