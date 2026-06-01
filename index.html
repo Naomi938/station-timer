@@ -474,26 +474,20 @@ async function init() {
   const state = await readState();
   currentState = state; // שמור, יופעל אחרי unlock
 
-  // Realtime subscription
-  sb.channel('timer_changes')
-    .on('postgres_changes', {
-      event: 'UPDATE',
-      schema: 'public',
-      table: 'timer_state'
-    }, payload => {
-      const s = payload.new?.state;
-      renderState(s || { running: false });
-    })
-    .subscribe(status => {
-      const el = document.getElementById('connStatus');
-      if (status === 'SUBSCRIBED') {
-        el.textContent = '● מחובר בזמן אמת';
-        el.className = 'conn-status connected';
-      } else {
-        el.textContent = 'מתחבר...';
-        el.className = 'conn-status';
-      }
-    });
+  // Polling כל 2 שניות
+  document.getElementById('connStatus').textContent = '● מחובר';
+  document.getElementById('connStatus').className = 'conn-status connected';
+
+  setInterval(async () => {
+    const s = await readState();
+    if (!s) return;
+    // אם running השתנה או stepId השתנה — עדכן
+    const prevRunning = currentState?.running;
+    const prevStepId  = currentState?.stepId;
+    if (s.running !== prevRunning || s.stepId !== prevStepId) {
+      renderState(s);
+    }
+  }, 2000);
 }
 
 init();
