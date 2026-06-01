@@ -388,10 +388,12 @@ function renderState(state) {
     document.getElementById('timerDisplay').className = 'timer-display idle';
     document.getElementById('progressFill').style.width = '0%';
 
-    // כל דפדפן מקדם את עצמו אוטומטית אחרי ANNOUNCE_DELAY
-    const elapsed  = Date.now()/1000 - state.stepStart;
-    const waitLeft = Math.max(0, ANNOUNCE_DELAY - elapsed);
-    localTickInterval = setTimeout(() => autoAdvance(state), waitLeft * 1000);
+    // רק המנהל מקדם
+    if (mode === 'admin') {
+      const elapsed  = Date.now()/1000 - state.stepStart;
+      const waitLeft = Math.max(0, ANNOUNCE_DELAY - elapsed);
+      localTickInterval = setTimeout(() => autoAdvance(state), waitLeft * 1000);
+    }
 
   } else {
     // טיימר — tick מקומי
@@ -410,7 +412,7 @@ function renderState(state) {
 
       if (remaining <= 0) {
         clearInterval(localTickInterval);
-        autoAdvance(state);
+        if (mode === 'admin') autoAdvance(state);
       }
     }, 300);
   }
