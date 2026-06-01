@@ -319,6 +319,10 @@ function renderSteps(idx) {
 }
 
 function setIdleUI() {
+  clearInterval(localTickInterval);
+  clearTimeout(localTickInterval);
+  localTickInterval = null;
+  spokenStepId = null;
   document.getElementById('phaseLabel').textContent = 'ממתין להתחלה';
   document.getElementById('timerDisplay').textContent = '--:--';
   document.getElementById('timerDisplay').className = 'timer-display idle';
