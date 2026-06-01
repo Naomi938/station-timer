@@ -41,8 +41,6 @@
     background-size: 48px 48px;
     pointer-events: none;
   }
-
-  /* Sound gate */
   .sound-gate {
     position: fixed;
     inset: 0;
@@ -66,10 +64,7 @@
     font-size: 17px;
     font-weight: 700;
     cursor: pointer;
-    transition: filter 0.2s;
   }
-  .btn-sound:hover { filter: brightness(1.15); }
-
   .card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -134,23 +129,12 @@
   .progress-fill.warn   { background: var(--warn); }
   .progress-fill.danger { background: var(--danger); }
   .steps-wrap { margin-bottom: 24px; }
-  .steps-title {
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    margin-bottom: 10px;
-  }
+  .steps-title { font-size: 11px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
   .steps-list { display: flex; flex-direction: column; gap: 4px; }
   .step-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 7px 10px;
-    border-radius: 6px;
-    font-size: 13px;
-    color: var(--muted);
-    transition: all 0.3s;
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 10px; border-radius: 6px; font-size: 13px;
+    color: var(--muted); transition: all 0.3s;
   }
   .step-item.done     { color: var(--muted); text-decoration: line-through; }
   .step-item.active   { background: var(--accent-dim); color: var(--accent); font-weight: 700; }
@@ -158,15 +142,9 @@
   .step-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
   .btn-row { display: flex; gap: 10px; }
   .btn {
-    flex: 1;
-    padding: 13px;
-    border-radius: 8px;
-    border: none;
-    font-family: 'Heebo', sans-serif;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
+    flex: 1; padding: 13px; border-radius: 8px; border: none;
+    font-family: 'Heebo', sans-serif; font-size: 15px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s;
   }
   .btn-start { background: var(--accent); color: #0a0a0f; }
   .btn-start:hover { filter: brightness(1.15); transform: translateY(-1px); }
@@ -175,39 +153,21 @@
   .btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
   .mode-toggle { display: flex; gap: 8px; margin-bottom: 24px; }
   .mode-btn {
-    flex: 1; padding: 8px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--muted);
-    font-family: 'Heebo', sans-serif;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.2s;
+    flex: 1; padding: 8px; border-radius: 8px; border: 1px solid var(--border);
+    background: transparent; color: var(--muted);
+    font-family: 'Heebo', sans-serif; font-size: 13px; cursor: pointer; transition: all 0.2s;
   }
   .mode-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); font-weight: 700; }
   .admin-section { margin-top: 24px; border-top: 1px solid var(--border); padding-top: 20px; }
   .overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.9);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 50;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.4s;
+    position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 50; opacity: 0; pointer-events: none; transition: opacity 0.4s;
   }
   .overlay.show { opacity: 1; pointer-events: all; }
   .overlay-text {
-    font-size: clamp(28px, 6vw, 52px);
-    font-weight: 900;
-    color: var(--accent);
-    text-align: center;
-    padding: 32px;
-    max-width: 600px;
-    line-height: 1.4;
+    font-size: clamp(28px, 6vw, 52px); font-weight: 900; color: var(--accent);
+    text-align: center; padding: 32px; max-width: 600px; line-height: 1.4;
   }
   .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
   .status-dot.live { background: var(--accent); box-shadow: 0 0 8px var(--accent); animation: blink 2s infinite; }
@@ -218,7 +178,6 @@
 </head>
 <body>
 
-<!-- Sound gate — כל משתמש חייב ללחוץ פעם אחת -->
 <div class="sound-gate" id="soundGate">
   <h2>יום תחנות 🏥</h2>
   <p>לחצי להפעלת הקול — הדפדפן דורש לחיצה לפני הפעלת שמע</p>
@@ -244,11 +203,9 @@
   </div>
 
   <div class="conn-status" id="connStatus">מתחבר...</div>
-
   <div class="phase-label" id="phaseLabel">ממתין להתחלה</div>
   <div class="timer-display idle" id="timerDisplay">--:--</div>
   <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
-
   <div class="steps-wrap" id="stepsWrap"></div>
 
   <div class="admin-section" id="adminSection" style="display:none">
@@ -263,11 +220,18 @@
 const SUPABASE_URL = 'https://kdmreoiusoowugsrbvzf.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkbXJlb2l1c29vd3Vnc3JidnpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMDE3NDcsImV4cCI6MjA5NTg3Nzc0N30.F-B3Jb0l8Owq-LxMThJRthBTQG1W5Th9KDjRYjDhJ_c';
 const ROW_ID = 1;
+const ANNOUNCE_DELAY = 4;
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const ANNOUNCE_DELAY = 4;
-let audioUnlocked = false;
 
+let audioUnlocked = false;
+let availableVoice = null;
+let mode = 'viewer';
+let localTickInterval = null;
+let currentState = null;
+let spokenStepId = null;
+
+// --- Sequence ---
 function buildSequence() {
   const seq = [];
   seq.push({ type: 'announce', text: 'התחלת יום תחנות', id: 'open' });
@@ -277,103 +241,81 @@ function buildSequence() {
     seq.push({ type: 'timer',   text: 'זמן בתחנה',   duration: 300, id: `t1_${r}`, round: r });
     seq.push({ type: 'announce', text: 'עברו 5 דקות', id: `mid_${r}`, round: r });
     seq.push({ type: 'timer',   text: 'זמן נוסף',    duration: 300, id: `t2_${r}`, round: r });
-    seq.push({ type: 'announce', text: r < 6 ? 'יציאה מהתחנה ומעבר לתחנה הבאה' : 'יציאה מהתחנה האחרונה', id: `exit_${r}`, round: r });
+    seq.push({ type: 'announce',
+      text: r < 6 ? 'יציאה מהתחנה ומעבר לתחנה הבאה' : 'יציאה מהתחנה האחרונה',
+      id: `exit_${r}`, round: r });
   }
   seq.push({ type: 'announce', text: 'סוף יום תחנות', id: 'close' });
   return seq;
 }
-
 const SEQUENCE = buildSequence();
-let mode = 'viewer';
-let tickInterval = null;
-let announceTimeout = null;
-let lastStepId = null;
-let pendingState = null; // state שמחכה לאחר unlock
 
-// --- Audio unlock ---
+// --- Audio ---
+function pickVoice() {
+  const voices = window.speechSynthesis.getVoices();
+  // עדיפות: עברית → ערבית (קרובה) → כל קול
+  availableVoice =
+    voices.find(v => v.lang.startsWith('he')) ||
+    voices.find(v => v.lang.startsWith('ar')) ||
+    voices.find(v => v.lang.startsWith('en')) ||
+    voices[0] || null;
+}
+
 function unlockAudio() {
-  // "warm up" speech synthesis with a silent utterance
+  // warm-up
   const u = new SpeechSynthesisUtterance(' ');
   u.volume = 0;
   window.speechSynthesis.speak(u);
+  pickVoice();
   audioUnlocked = true;
   document.getElementById('soundGate').style.display = 'none';
-
-  // אם כבר יש state שחיכה — נפעיל אותו עכשיו
-  if (pendingState) {
-    const s = pendingState;
-    pendingState = null;
-    applyState(s);
-  }
+  // אם יש state שחיכה — הפעל עכשיו
+  if (currentState) renderState(currentState);
 }
 
+function speak(text) {
+  if (!audioUnlocked) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  if (availableVoice) u.voice = availableVoice;
+  u.lang = availableVoice?.lang || 'he-IL';
+  u.rate = 0.9;
+  u.volume = 1;
+  window.speechSynthesis.speak(u);
+}
+
+// --- Helpers ---
 function fmt(sec) {
   if (sec < 0) sec = 0;
   return `${Math.floor(sec/60).toString().padStart(2,'0')}:${(sec%60).toString().padStart(2,'0')}`;
 }
 
-function speak(text) {
-  if (!audioUnlocked || !window.speechSynthesis) return;
-  window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'he-IL';
-  u.rate = 0.92;
-  window.speechSynthesis.speak(u);
-}
-
-function showOverlay(text, duration) {
+function showOverlay(text, sec) {
   const el = document.getElementById('overlay');
   document.getElementById('overlayText').textContent = text;
   el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), duration * 1000 - 300);
+  setTimeout(() => el.classList.remove('show'), sec * 1000 - 400);
 }
 
 function setMode(m) {
   mode = m;
-  document.getElementById('btnViewer').classList.toggle('active', m === 'viewer');
-  document.getElementById('btnAdmin').classList.toggle('active', m === 'admin');
-  document.getElementById('adminSection').style.display = m === 'admin' ? 'block' : 'none';
+  document.getElementById('btnViewer').classList.toggle('active', m==='viewer');
+  document.getElementById('btnAdmin').classList.toggle('active', m==='admin');
+  document.getElementById('adminSection').style.display = m==='admin' ? 'block' : 'none';
 }
 
-function renderSteps(currentIdx) {
-  const start = Math.max(0, currentIdx - 1);
-  const end   = Math.min(SEQUENCE.length - 1, currentIdx + 4);
+function renderSteps(idx) {
+  const start = Math.max(0, idx - 1);
+  const end   = Math.min(SEQUENCE.length - 1, idx + 4);
   let html = '<div class="steps-title">התקדמות</div><div class="steps-list">';
   for (let i = start; i <= end; i++) {
     const s = SEQUENCE[i];
-    const cls = i < currentIdx ? 'done' : i === currentIdx ? 'active' : 'upcoming';
+    const cls = i < idx ? 'done' : i === idx ? 'active' : 'upcoming';
     const dur = s.type === 'timer' ? ` (${fmt(s.duration)})` : '';
     html += `<div class="step-item ${cls}"><div class="step-dot"></div>${s.text}${dur}</div>`;
   }
   html += '</div>';
   document.getElementById('stepsWrap').innerHTML = html;
-}
-
-function updateTimerUI(remaining, total, step) {
-  const disp = document.getElementById('timerDisplay');
-  const fill = document.getElementById('progressFill');
-  document.getElementById('statusDot').className = 'status-dot live';
-  document.getElementById('phaseLabel').textContent = step.text;
-
-  if (step.type === 'announce') {
-    disp.textContent = '--:--';
-    disp.className = 'timer-display idle';
-    fill.style.width = '0%';
-    fill.className = 'progress-fill';
-    return;
-  }
-
-  disp.textContent = fmt(remaining);
-  fill.style.width = Math.max(0, (remaining / total) * 100) + '%';
-  let c = remaining <= 30 ? 'danger' : remaining <= total * 0.25 ? 'warn' : '';
-  disp.className = 'timer-display ' + c;
-  fill.className  = 'progress-fill ' + c;
-}
-
-function updateRoundBadge(round) {
-  const b = document.getElementById('roundBadge');
-  if (round) { b.textContent = `סבב ${round} / 6`; b.style.display = ''; }
-  else b.style.display = 'none';
 }
 
 function setIdleUI() {
@@ -384,125 +326,156 @@ function setIdleUI() {
   document.getElementById('statusDot').className = 'status-dot';
   document.getElementById('roundBadge').style.display = 'none';
   document.getElementById('stepsWrap').innerHTML = '';
-  clearInterval(tickInterval);
-  clearTimeout(announceTimeout);
 }
 
+// --- Supabase ---
 async function writeState(state) {
   await sb.from('timer_state').update({ state }).eq('id', ROW_ID);
 }
-
 async function readState() {
   const { data } = await sb.from('timer_state').select('state').eq('id', ROW_ID).single();
   return data?.state || null;
 }
 
-function applyState(state) {
-  // אם המשתמש עדיין לא ביצע unlock — שמור ותמתין
-  if (!audioUnlocked) {
-    pendingState = state;
-    return;
-  }
+// --- Core: render + local tick ---
+// כל דפדפן מנהל את הטיימר שלו לוקאלית.
+// רק המנהל כותב ל-Supabase כשצריך לקדם שלב.
+// הצופים קוראים מ-Supabase בזמן אמת ומעדכנים את עצמם.
 
-  if (!state || !state.running) { setIdleUI(); lastStepId = null; return; }
+function renderState(state) {
+  currentState = state;
+  if (!state || !state.running) { setIdleUI(); return; }
 
-  const idx = state.stepIndex;
+  const idx  = state.stepIndex;
   if (idx >= SEQUENCE.length) { setIdleUI(); return; }
-
   const step = SEQUENCE[idx];
 
-  // עדכן badge סבב — לכולם
-  updateRoundBadge(step.round || null);
+  // Badge סבב — לכולם
+  const b = document.getElementById('roundBadge');
+  if (step.round) { b.textContent = `סבב ${step.round} / 6`; b.style.display = ''; }
+  else b.style.display = 'none';
+
   renderSteps(idx);
+  document.getElementById('statusDot').className = 'status-dot live';
 
-  const isNewStep = state.stepId !== lastStepId;
-
-  if (isNewStep) {
-    lastStepId = state.stepId;
-    clearInterval(tickInterval);
-    clearTimeout(announceTimeout);
-
+  // קול — רק אם שלב חדש
+  if (state.stepId !== spokenStepId) {
+    spokenStepId = state.stepId;
     if (step.type === 'announce') {
       speak(step.text);
       showOverlay(step.text, ANNOUNCE_DELAY);
-      updateTimerUI(0, 0, step);
-
-      if (mode === 'admin') {
-        const elapsed = Date.now() / 1000 - state.stepStart;
-        const wait = Math.max(0, ANNOUNCE_DELAY - elapsed);
-        announceTimeout = setTimeout(() => advanceStep(state), wait * 1000);
-      }
-    } else {
-      tickInterval = setInterval(() => {
-        const elapsed = Date.now() / 1000 - state.stepStart;
-        const remaining = Math.max(0, Math.round(step.duration - elapsed));
-        updateTimerUI(remaining, step.duration, step);
-        if (remaining <= 0) {
-          clearInterval(tickInterval);
-          if (mode === 'admin') advanceStep(state);
-        }
-      }, 300);
     }
+  }
+
+  // עצור tick קודם
+  clearInterval(localTickInterval);
+
+  if (step.type === 'announce') {
+    document.getElementById('phaseLabel').textContent = step.text;
+    document.getElementById('timerDisplay').textContent = '--:--';
+    document.getElementById('timerDisplay').className = 'timer-display idle';
+    document.getElementById('progressFill').style.width = '0%';
+
+    // כל דפדפן מקדם את עצמו אוטומטית אחרי ANNOUNCE_DELAY
+    const elapsed  = Date.now()/1000 - state.stepStart;
+    const waitLeft = Math.max(0, ANNOUNCE_DELAY - elapsed);
+    localTickInterval = setTimeout(() => autoAdvance(state), waitLeft * 1000);
+
+  } else {
+    // טיימר — tick מקומי
+    localTickInterval = setInterval(() => {
+      const elapsed    = Date.now()/1000 - state.stepStart;
+      const remaining  = Math.max(0, Math.round(step.duration - elapsed));
+      const pct        = Math.max(0, (remaining / step.duration) * 100);
+
+      document.getElementById('phaseLabel').textContent = step.text;
+      document.getElementById('timerDisplay').textContent = fmt(remaining);
+      document.getElementById('progressFill').style.width = pct + '%';
+
+      const c = remaining <= 30 ? 'danger' : remaining <= step.duration * 0.25 ? 'warn' : '';
+      document.getElementById('timerDisplay').className = 'timer-display ' + c;
+      document.getElementById('progressFill').className  = 'progress-fill ' + c;
+
+      if (remaining <= 0) {
+        clearInterval(localTickInterval);
+        autoAdvance(state);
+      }
+    }, 300);
   }
 }
 
-async function advanceStep(state) {
-  clearTimeout(announceTimeout);
-  clearInterval(tickInterval);
+// autoAdvance: כל דפדפן מחשב — אבל רק המנהל כותב ל-Supabase
+async function autoAdvance(state) {
   const nextIdx = state.stepIndex + 1;
+
   if (nextIdx >= SEQUENCE.length) {
-    await writeState({ running: false });
+    // סיום
+    if (mode === 'admin') await writeState({ running: false });
     setIdleUI();
     return;
   }
+
   const nextStep = SEQUENCE[nextIdx];
   const newState = {
     running: true,
     stepIndex: nextIdx,
     stepId: nextStep.id,
-    stepStart: Date.now() / 1000
+    stepStart: Date.now()/1000
   };
-  await writeState(newState);
-  applyState(newState);
+
+  if (mode === 'admin') {
+    // המנהל כותב — הצופים יקבלו דרך realtime
+    await writeState(newState);
+  }
+  // כולם מעדכנים את עצמם לוקאלית
+  renderState(newState);
 }
 
+// --- Admin buttons ---
 async function adminStart() {
   const firstStep = SEQUENCE[0];
   const state = {
     running: true,
     stepIndex: 0,
     stepId: firstStep.id,
-    stepStart: Date.now() / 1000
+    stepStart: Date.now()/1000
   };
   await writeState(state);
-  applyState(state);
+  renderState(state);
   document.getElementById('btnStart').textContent = '⏳ רץ...';
   document.getElementById('btnStart').disabled = true;
 }
 
 async function adminReset() {
-  clearInterval(tickInterval);
-  clearTimeout(announceTimeout);
-  lastStepId = null;
+  clearInterval(localTickInterval);
+  spokenStepId = null;
   await writeState({ running: false });
+  currentState = null;
   setIdleUI();
   document.getElementById('btnStart').textContent = '▶ התחל יום תחנות';
   document.getElementById('btnStart').disabled = false;
 }
 
+// --- Init ---
 async function init() {
-  const state = await readState();
-  // לא מפעילים applyState לפני unlock — שומרים כ-pending
-  if (state) pendingState = state;
+  // טען קולות (Chrome טוען אותם async)
+  if (window.speechSynthesis.onvoiceschanged !== undefined) {
+    window.speechSynthesis.onvoiceschanged = pickVoice;
+  }
+  pickVoice();
 
+  const state = await readState();
+  currentState = state; // שמור, יופעל אחרי unlock
+
+  // Realtime subscription
   sb.channel('timer_changes')
     .on('postgres_changes', {
       event: 'UPDATE',
       schema: 'public',
       table: 'timer_state'
     }, payload => {
-      const newState = payload.new?.state;
-      if (newState && newState.stepId !== lastStepId) applyState(newState);
+      const s = payload.new?.state;
+      if (s) renderState(s);
     })
     .subscribe(status => {
       const el = document.getElementById('connStatus');
