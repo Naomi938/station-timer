@@ -439,12 +439,12 @@ async function autoAdvance(state) {
     stepStart: Date.now()/1000
   };
 
-  if (mode === 'admin') {
-    // המנהל כותב — הצופים יקבלו דרך realtime
-    await writeState(newState);
-  }
-  // כולם מעדכנים את עצמם לוקאלית
+  // הצג מיד — אל תחכה לרשת
   renderState(newState);
+  if (mode === 'admin') {
+    // כתוב ל-Supabase ברקע
+    writeState(newState);
+  }
 }
 
 // --- Admin buttons ---
