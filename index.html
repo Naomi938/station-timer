@@ -236,10 +236,12 @@ function buildSequence() {
   const seq = [];
   seq.push({ type: 'announce', text: 'תחילת יום תחנות', id: 'open' });
   for (let r = 1; r <= 6; r++) {
-    seq.push({ type: 'timer',    text: 'קריאת הנחיות',                       duration: 150, id: `inst_${r}`,  round: r }); // 2:30
-    seq.push({ type: 'timer',    text: 'כניסה לתחנה',                        duration: 300, id: `enter_${r}`, round: r }); // 5:00
-    seq.push({ type: 'announce', text: 'עברו 5 דקות',                        id: `mid_${r}`,   round: r });
-    seq.push({ type: 'timer',    text: 'זמן נוסף בתחנה',                     duration: 300, id: `t2_${r}`,    round: r }); // 5:00
+    seq.push({ type: 'announce', text: 'קריאת הנחיות',   id: `inst_ann_${r}`,  round: r });
+    seq.push({ type: 'timer',    text: 'קריאת הנחיות',   duration: 150, id: `inst_${r}`,   round: r }); // 2:30
+    seq.push({ type: 'announce', text: 'כניסה לתחנה',    id: `enter_ann_${r}`, round: r });
+    seq.push({ type: 'timer',    text: 'כניסה לתחנה',    duration: 300, id: `enter_${r}`,  round: r }); // 5:00
+    seq.push({ type: 'announce', text: 'עברו 5 דקות',    id: `mid_${r}`,       round: r });
+    seq.push({ type: 'timer',    text: 'זמן נוסף בתחנה', duration: 300, id: `t2_${r}`,     round: r }); // 5:00
     seq.push({ type: 'announce', text: r < 6 ? 'יציאה מהתחנה ומעבר לתחנה הבאה' : 'יציאה מהתחנה האחרונה', id: `exit_${r}`, round: r });
   }
   seq.push({ type: 'announce', text: 'סוף יום תחנות', id: 'close' });
