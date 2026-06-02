@@ -187,7 +187,7 @@ function getStepAt(elapsed) {
   const step       = SEQUENCE[idx];
   const stepStart  = STEP_OFFSETS[idx];
   const stepElapsed = elapsed - stepStart;
-  const remaining  = Math.max(0, step.dur - stepElapsed);
+  const remaining  = Math.max(0, Math.round(step.dur - stepElapsed));
   return { idx, step, stepStart, stepElapsed, remaining, done: false };
 }
 
