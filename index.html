@@ -387,12 +387,10 @@ function renderState(state) {
     document.getElementById('timerDisplay').className = 'timer-display idle';
     document.getElementById('progressFill').style.width = '0%';
 
-    // רק המנהל מקדם
-    if (mode === 'admin') {
-      const elapsed  = Date.now()/1000 - state.stepStart;
-      const waitLeft = Math.max(0, ANNOUNCE_DELAY - elapsed);
-      localTickInterval = setTimeout(() => autoAdvance(state), waitLeft * 1000);
-    }
+    // כולם מקדמים לוקאלית
+    const elapsed  = Date.now()/1000 - state.stepStart;
+    const waitLeft = Math.max(0, ANNOUNCE_DELAY - elapsed);
+    localTickInterval = setTimeout(() => autoAdvance(state), waitLeft * 1000);
 
   } else {
     // טיימר — tick מקומי
@@ -411,8 +409,7 @@ function renderState(state) {
 
       if (remaining <= 0) {
         clearInterval(localTickInterval);
-        if (mode === 'admin') autoAdvance(state);
-        else renderState({...state}); // צופים — עדכן תצוגה מיד (ימתינו ל-poll לשלב הבא)
+        autoAdvance(state);
       }
     }, 300);
   }
@@ -440,12 +437,10 @@ async function autoAdvance(state) {
     stepStart: Date.now()/1000
   };
 
-  // הצג מיד — אל תחכה לרשת
+  // הצג מיד לוקאלית
   renderState(newState);
-  if (mode === 'admin') {
-    // כתוב ל-Supabase ברקע
-    writeState(newState);
-  }
+  // רק מנהל כותב ל-Supabase (לסנכרון צופים חדשים שנכנסים)
+  if (mode === 'admin') writeState(newState);
 }
 
 // --- Admin buttons ---
