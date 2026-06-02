@@ -62,7 +62,7 @@
   .timer-display.danger { color: var(--danger); }
   .timer-display.idle   { color: var(--muted); }
   .progress-track { height: 5px; background: var(--border); border-radius: 3px; margin-bottom: 28px; overflow: hidden; }
-  .progress-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.5s linear, background 0.3s; width: 0%; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.3s linear, background 0.3s; width: 0%; }
   .progress-fill.warn   { background: var(--warn); }
   .progress-fill.danger { background: var(--danger); }
   .steps-wrap { margin-bottom: 24px; }
@@ -73,17 +73,31 @@
   .step-item.active   { background: var(--accent-dim); color: var(--accent); font-weight: 700; }
   .step-item.upcoming { color: var(--text); }
   .step-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
-  .btn-row { display: flex; gap: 10px; }
+  .btn-row { display: flex; gap: 10px; margin-bottom: 12px; }
   .btn { flex: 1; padding: 13px; border-radius: 8px; border: none; font-family: 'Heebo', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
   .btn-start { background: var(--accent); color: #0a0a0f; }
   .btn-start:hover { filter: brightness(1.15); }
   .btn-reset { background: transparent; border: 1px solid var(--border); color: var(--muted); }
   .btn-reset:hover { border-color: var(--danger); color: var(--danger); }
+  .btn-wake { background: transparent; border: 1px solid var(--accent); color: var(--accent); font-size: 13px; padding: 8px; }
+  .btn-wake.active { background: var(--accent-dim); }
   .btn:disabled { opacity: 0.3; cursor: not-allowed; }
   .mode-toggle { display: flex; gap: 8px; margin-bottom: 24px; }
   .mode-btn { flex: 1; padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-family: 'Heebo', sans-serif; font-size: 13px; cursor: pointer; transition: all 0.2s; }
   .mode-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); font-weight: 700; }
   .admin-section { margin-top: 24px; border-top: 1px solid var(--border); padding-top: 20px; }
+  .jump-section { margin-top: 16px; }
+  .jump-title { font-size: 11px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+  .jump-list { display: flex; flex-direction: column; gap: 4px; max-height: 220px; overflow-y: auto; }
+  .jump-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 10px; border-radius: 6px; font-size: 13px;
+    border: 1px solid var(--border); cursor: pointer; transition: all 0.15s;
+    background: transparent; color: var(--text); font-family: 'Heebo', sans-serif;
+    text-align: right;
+  }
+  .jump-item:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+  .jump-item .jump-time { font-size: 11px; color: var(--muted); font-family: 'Share Tech Mono', monospace; }
   .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 50; opacity: 0; pointer-events: none; transition: opacity 0.4s; }
   .overlay.show { opacity: 1; }
   .overlay-text { font-size: clamp(28px, 6vw, 52px); font-weight: 900; color: var(--accent); text-align: center; padding: 32px; max-width: 600px; line-height: 1.4; }
@@ -92,6 +106,7 @@
   @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
   .conn-status { font-size: 11px; color: var(--muted); text-align: center; margin-bottom: 16px; }
   .conn-status.connected { color: var(--accent); }
+  .wake-row { display: flex; justify-content: flex-end; margin-bottom: 12px; }
 </style>
 </head>
 <body>
@@ -120,6 +135,11 @@
     <button class="mode-btn" id="btnAdmin" onclick="setMode('admin')">ניהול</button>
   </div>
 
+  <!-- כפתור נעילת מסך — לכולם -->
+  <div class="wake-row">
+    <button class="btn btn-wake" id="btnWake" onclick="toggleWakeLock()">☀ מנע כיבוי מסך</button>
+  </div>
+
   <div class="conn-status" id="connStatus">מתחבר...</div>
   <div class="phase-label" id="phaseLabel">ממתין להתחלה</div>
   <div class="timer-display idle" id="timerDisplay">--:--</div>
@@ -131,6 +151,12 @@
       <button class="btn btn-start" id="btnStart" onclick="adminStart()">▶ התחל יום תחנות</button>
       <button class="btn btn-reset" onclick="adminReset()">↺ איפוס</button>
     </div>
+
+    <!-- דילוג לשלב -->
+    <div class="jump-section">
+      <div class="jump-title">דלג לשלב</div>
+      <div class="jump-list" id="jumpList"></div>
+    </div>
   </div>
 </div>
 
@@ -140,11 +166,6 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const ROW_ID = 1;
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// =============================================
-// הרצף — כל שלב עם משך בשניות
-// announce = הודעה (ANNOUNCE_DUR שניות)
-// timer    = טיימר רץ
-// =============================================
 const ANNOUNCE_DUR = 4;
 
 function buildSequence() {
@@ -165,39 +186,57 @@ function buildSequence() {
 
 const SEQUENCE = buildSequence();
 
-// חשב זמן התחלה מצטבר לכל שלב
-const STEP_OFFSETS = []; // שניות מתחילת היום עד תחילת כל שלב
+// חשב offset מצטבר לכל שלב
+const STEP_OFFSETS = [];
 let acc = 0;
-for (const s of SEQUENCE) {
-  STEP_OFFSETS.push(acc);
-  acc += s.dur;
-}
+for (const s of SEQUENCE) { STEP_OFFSETS.push(acc); acc += s.dur; }
 const TOTAL_DUR = acc;
 
-// =============================================
-// פונקציה מרכזית: קבל elapsed (שניות מהתחלה) → החזר שלב נוכחי
-// =============================================
 function getStepAt(elapsed) {
   if (elapsed < 0) return null;
-  if (elapsed >= TOTAL_DUR) return { idx: SEQUENCE.length, done: true };
+  if (elapsed >= TOTAL_DUR) return { done: true };
   let idx = 0;
   for (let i = SEQUENCE.length - 1; i >= 0; i--) {
     if (elapsed >= STEP_OFFSETS[i]) { idx = i; break; }
   }
-  const step       = SEQUENCE[idx];
-  const stepStart  = STEP_OFFSETS[idx];
-  const stepElapsed = elapsed - stepStart;
-  const remaining  = Math.max(0, Math.round(step.dur - stepElapsed));
-  return { idx, step, stepStart, stepElapsed, remaining, done: false };
+  const step        = SEQUENCE[idx];
+  const stepElapsed = elapsed - STEP_OFFSETS[idx];
+  const remaining   = Math.max(0, Math.round(step.dur - stepElapsed));
+  return { idx, step, remaining, done: false };
 }
 
-// =============================================
+// --- State ---
 let audioUnlocked  = false;
 let availableVoice = null;
 let mode           = 'viewer';
 let tickInterval   = null;
-let startTime      = null; // Unix timestamp (seconds) שנשמר ב-Supabase
+let startTime      = null;
 let lastSpokenIdx  = -1;
+let wakeLock       = null;
+
+// --- Wake Lock ---
+async function toggleWakeLock() {
+  const btn = document.getElementById('btnWake');
+  if (wakeLock) {
+    await wakeLock.release();
+    wakeLock = null;
+    btn.textContent = '☀ מנע כיבוי מסך';
+    btn.classList.remove('active');
+  } else {
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      btn.textContent = '☀ מסך נעול';
+      btn.classList.add('active');
+      wakeLock.addEventListener('release', () => {
+        wakeLock = null;
+        btn.textContent = '☀ מנע כיבוי מסך';
+        btn.classList.remove('active');
+      });
+    } catch(e) {
+      btn.textContent = '☀ לא נתמך בדפדפן זה';
+    }
+  }
+}
 
 // --- Audio ---
 function pickVoice() {
@@ -270,18 +309,45 @@ function setIdleUI() {
   lastSpokenIdx = -1;
 }
 
-// --- Tick: רץ כל 200ms, מחשב שלב לפי elapsed ---
+// --- Jump list (בפאנל ניהול) ---
+function buildJumpList() {
+  const list = document.getElementById('jumpList');
+  let html = '';
+  for (let i = 0; i < SEQUENCE.length; i++) {
+    const s      = SEQUENCE[i];
+    const label  = s.round ? `סבב ${s.round} — ${s.text}` : s.text;
+    const offset = STEP_OFFSETS[i];
+    const icon   = s.type === 'timer' ? '⏱' : '📢';
+    html += `<button class="jump-item" onclick="jumpToStep(${i})">
+      <span>${icon} ${label}</span>
+      <span class="jump-time">${fmt(offset)}</span>
+    </button>`;
+  }
+  list.innerHTML = html;
+}
+
+async function jumpToStep(idx) {
+  // מחשב start_time כך שעכשיו יהיה בדיוק בתחילת השלב הזה
+  const offset    = STEP_OFFSETS[idx];
+  const newStart  = Date.now()/1000 - offset;
+  const state     = { running: true, start_time: newStart };
+  await writeState(state);
+  startTime     = newStart;
+  lastSpokenIdx = -1;
+  if (!tickInterval) startTick();
+  document.getElementById('btnStart').textContent = '⏳ רץ...';
+  document.getElementById('btnStart').disabled    = true;
+}
+
+// --- Tick ---
 function startTick() {
   clearInterval(tickInterval);
   tickInterval = setInterval(() => {
     if (!startTime) return;
     const elapsed = Date.now()/1000 - startTime;
-    const info = getStepAt(elapsed);
+    const info    = getStepAt(elapsed);
 
-    if (!info || info.done) {
-      setIdleUI();
-      return;
-    }
+    if (!info || info.done) { setIdleUI(); return; }
 
     const { idx, step, remaining } = info;
 
@@ -291,12 +357,9 @@ function startTick() {
     else b.style.display = 'none';
 
     // קול — רק פעם אחת לכל שלב
-    if (idx !== lastSpokenIdx && step.type === 'announce') {
+    if (idx !== lastSpokenIdx) {
       lastSpokenIdx = idx;
-      speak(step.text);
-      showOverlay(step.text);
-    } else if (idx !== lastSpokenIdx) {
-      lastSpokenIdx = idx;
+      if (step.type === 'announce') { speak(step.text); showOverlay(step.text); }
     }
 
     // UI
@@ -308,6 +371,7 @@ function startTick() {
       document.getElementById('timerDisplay').textContent = '--:--';
       document.getElementById('timerDisplay').className   = 'timer-display idle';
       document.getElementById('progressFill').style.width = '0%';
+      document.getElementById('progressFill').className   = 'progress-fill';
     } else {
       document.getElementById('timerDisplay').textContent = fmt(remaining);
       const pct = (remaining / step.dur) * 100;
@@ -343,11 +407,12 @@ async function adminReset() {
   setIdleUI();
 }
 
-// --- Init + polling ---
+// --- Init ---
 async function init() {
   if (window.speechSynthesis.onvoiceschanged !== undefined)
     window.speechSynthesis.onvoiceschanged = pickVoice;
   pickVoice();
+  buildJumpList();
 
   const s = await readState();
   document.getElementById('connStatus').textContent = '● מחובר';
@@ -356,19 +421,24 @@ async function init() {
   if (s?.running && s.start_time) {
     startTime = s.start_time;
     startTick();
+    document.getElementById('btnStart').textContent = '⏳ רץ...';
+    document.getElementById('btnStart').disabled    = true;
   }
 
-  // Polling כל שנייה — רק לזיהוי התחלה/איפוס
+  // Polling כל שנייה — זיהוי התחלה/דילוג/איפוס
   setInterval(async () => {
     const s = await readState();
     if (!s) return;
-    if (s.running && s.start_time && !startTime) {
-      // התחלה חדשה
-      startTime = s.start_time;
-      lastSpokenIdx = -1;
-      startTick();
+    if (s.running && s.start_time) {
+      if (!startTime || Math.abs(s.start_time - startTime) > 1) {
+        // התחלה חדשה או דילוג
+        startTime     = s.start_time;
+        lastSpokenIdx = -1;
+        startTick();
+        document.getElementById('btnStart').textContent = '⏳ רץ...';
+        document.getElementById('btnStart').disabled    = true;
+      }
     } else if (!s.running && startTime) {
-      // איפוס
       setIdleUI();
     }
   }, 1000);
