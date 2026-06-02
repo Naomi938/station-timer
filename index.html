@@ -8,167 +8,85 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
-    --bg: #0a0a0f;
-    --surface: #12121a;
-    --border: #1e1e2e;
-    --accent: #00e5a0;
-    --accent-dim: #00e5a022;
-    --warn: #ffb700;
-    --danger: #ff4466;
-    --text: #e8e8f0;
-    --muted: #555570;
-    --radius: 12px;
+    --bg: #0a0a0f; --surface: #12121a; --border: #1e1e2e;
+    --accent: #00e5a0; --accent-dim: #00e5a022;
+    --warn: #ffb700; --danger: #ff4466;
+    --text: #e8e8f0; --muted: #555570; --radius: 12px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    background: var(--bg);
-    color: var(--text);
+    background: var(--bg); color: var(--text);
     font-family: 'Heebo', sans-serif;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; padding: 24px;
   }
   body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
+    content: ''; position: fixed; inset: 0;
     background-image:
       linear-gradient(rgba(0,229,160,0.03) 1px, transparent 1px),
       linear-gradient(90deg, rgba(0,229,160,0.03) 1px, transparent 1px);
-    background-size: 48px 48px;
-    pointer-events: none;
+    background-size: 48px 48px; pointer-events: none;
   }
   .sound-gate {
-    position: fixed;
-    inset: 0;
-    background: var(--bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-    flex-direction: column;
-    gap: 20px;
+    position: fixed; inset: 0; background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100; flex-direction: column; gap: 20px;
   }
   .sound-gate h2 { font-size: 22px; font-weight: 700; }
   .sound-gate p  { font-size: 14px; color: var(--muted); text-align: center; max-width: 300px; line-height: 1.6; }
   .btn-sound {
-    background: var(--accent);
-    color: #0a0a0f;
-    border: none;
-    border-radius: 10px;
-    padding: 14px 36px;
-    font-family: 'Heebo', sans-serif;
-    font-size: 17px;
-    font-weight: 700;
-    cursor: pointer;
+    background: var(--accent); color: #0a0a0f; border: none;
+    border-radius: 10px; padding: 14px 36px;
+    font-family: 'Heebo', sans-serif; font-size: 17px; font-weight: 700; cursor: pointer;
   }
   .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 36px 32px;
-    width: 100%;
-    max-width: 540px;
-    position: relative;
-    z-index: 1;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 36px 32px;
+    width: 100%; max-width: 540px; position: relative; z-index: 1;
   }
-  .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 28px;
-  }
+  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
   .title { font-size: 18px; font-weight: 700; }
   .round-badge {
-    background: var(--accent-dim);
-    border: 1px solid var(--accent);
-    color: var(--accent);
-    font-size: 13px;
-    font-weight: 700;
-    padding: 5px 14px;
-    border-radius: 20px;
+    background: var(--accent-dim); border: 1px solid var(--accent);
+    color: var(--accent); font-size: 13px; font-weight: 700;
+    padding: 5px 14px; border-radius: 20px;
   }
-  .phase-label {
-    text-align: center;
-    font-size: 22px;
-    font-weight: 700;
-    min-height: 56px;
-    line-height: 1.4;
-    margin-bottom: 20px;
-  }
+  .phase-label { text-align: center; font-size: 22px; font-weight: 700; min-height: 56px; line-height: 1.4; margin-bottom: 20px; }
   .timer-display {
     font-family: 'Share Tech Mono', monospace;
-    font-size: clamp(72px, 20vw, 108px);
-    line-height: 1;
-    text-align: center;
-    color: var(--accent);
-    transition: color 0.3s;
-    letter-spacing: -3px;
-    margin-bottom: 16px;
+    font-size: clamp(72px, 20vw, 108px); line-height: 1;
+    text-align: center; color: var(--accent); transition: color 0.3s;
+    letter-spacing: -3px; margin-bottom: 16px;
   }
   .timer-display.warn   { color: var(--warn); }
   .timer-display.danger { color: var(--danger); }
   .timer-display.idle   { color: var(--muted); }
-  .progress-track {
-    height: 5px;
-    background: var(--border);
-    border-radius: 3px;
-    margin-bottom: 28px;
-    overflow: hidden;
-  }
-  .progress-fill {
-    height: 100%;
-    background: var(--accent);
-    border-radius: 3px;
-    transition: width 0.5s linear, background 0.3s;
-    width: 0%;
-  }
+  .progress-track { height: 5px; background: var(--border); border-radius: 3px; margin-bottom: 28px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.5s linear, background 0.3s; width: 0%; }
   .progress-fill.warn   { background: var(--warn); }
   .progress-fill.danger { background: var(--danger); }
   .steps-wrap { margin-bottom: 24px; }
   .steps-title { font-size: 11px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
   .steps-list { display: flex; flex-direction: column; gap: 4px; }
-  .step-item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 7px 10px; border-radius: 6px; font-size: 13px;
-    color: var(--muted); transition: all 0.3s;
-  }
+  .step-item { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 6px; font-size: 13px; color: var(--muted); }
   .step-item.done     { color: var(--muted); text-decoration: line-through; }
   .step-item.active   { background: var(--accent-dim); color: var(--accent); font-weight: 700; }
   .step-item.upcoming { color: var(--text); }
   .step-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
   .btn-row { display: flex; gap: 10px; }
-  .btn {
-    flex: 1; padding: 13px; border-radius: 8px; border: none;
-    font-family: 'Heebo', sans-serif; font-size: 15px; font-weight: 700;
-    cursor: pointer; transition: all 0.2s;
-  }
+  .btn { flex: 1; padding: 13px; border-radius: 8px; border: none; font-family: 'Heebo', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
   .btn-start { background: var(--accent); color: #0a0a0f; }
-  .btn-start:hover { filter: brightness(1.15); transform: translateY(-1px); }
+  .btn-start:hover { filter: brightness(1.15); }
   .btn-reset { background: transparent; border: 1px solid var(--border); color: var(--muted); }
   .btn-reset:hover { border-color: var(--danger); color: var(--danger); }
-  .btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+  .btn:disabled { opacity: 0.3; cursor: not-allowed; }
   .mode-toggle { display: flex; gap: 8px; margin-bottom: 24px; }
-  .mode-btn {
-    flex: 1; padding: 8px; border-radius: 8px; border: 1px solid var(--border);
-    background: transparent; color: var(--muted);
-    font-family: 'Heebo', sans-serif; font-size: 13px; cursor: pointer; transition: all 0.2s;
-  }
+  .mode-btn { flex: 1; padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-family: 'Heebo', sans-serif; font-size: 13px; cursor: pointer; transition: all 0.2s; }
   .mode-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); font-weight: 700; }
   .admin-section { margin-top: 24px; border-top: 1px solid var(--border); padding-top: 20px; }
-  .overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.9);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 50; opacity: 0; pointer-events: none; transition: opacity 0.4s;
-  }
-  .overlay.show { opacity: 1; pointer-events: all; }
-  .overlay-text {
-    font-size: clamp(28px, 6vw, 52px); font-weight: 900; color: var(--accent);
-    text-align: center; padding: 32px; max-width: 600px; line-height: 1.4;
-  }
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 50; opacity: 0; pointer-events: none; transition: opacity 0.4s; }
+  .overlay.show { opacity: 1; }
+  .overlay-text { font-size: clamp(28px, 6vw, 52px); font-weight: 900; color: var(--accent); text-align: center; padding: 32px; max-width: 600px; line-height: 1.4; }
   .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
   .status-dot.live { background: var(--accent); box-shadow: 0 0 8px var(--accent); animation: blink 2s infinite; }
   @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
@@ -180,7 +98,7 @@
 
 <div class="sound-gate" id="soundGate">
   <h2>יום תחנות 🏥</h2>
-  <p>לחצי להפעלת הקול — הדפדפן דורש לחיצה לפני הפעלת שמע</p>
+  <p>לחצי להפעלת הקול</p>
   <button class="btn-sound" onclick="unlockAudio()">▶ כניסה</button>
 </div>
 
@@ -192,7 +110,7 @@
   <div class="header">
     <span class="title">יום תחנות</span>
     <div style="display:flex;gap:10px;align-items:center;">
-      <span class="round-badge" id="roundBadge" style="display:none">סבב 1 / 6</span>
+      <span class="round-badge" id="roundBadge" style="display:none"></span>
       <div class="status-dot" id="statusDot"></div>
     </div>
   </div>
@@ -220,66 +138,90 @@
 const SUPABASE_URL = 'https://kdmreoiusoowugsrbvzf.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkbXJlb2l1c29vd3Vnc3JidnpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMDE3NDcsImV4cCI6MjA5NTg3Nzc0N30.F-B3Jb0l8Owq-LxMThJRthBTQG1W5Th9KDjRYjDhJ_c';
 const ROW_ID = 1;
-const ANNOUNCE_DELAY = 4;
-
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let audioUnlocked = false;
-let availableVoice = null;
-let mode = 'viewer';
-let localTickInterval = null;
-let currentState = null;
-let spokenStepId = null;
+// =============================================
+// הרצף — כל שלב עם משך בשניות
+// announce = הודעה (ANNOUNCE_DUR שניות)
+// timer    = טיימר רץ
+// =============================================
+const ANNOUNCE_DUR = 4;
 
-// --- Sequence ---
 function buildSequence() {
   const seq = [];
-  seq.push({ type: 'announce', text: 'תחילת יום תחנות', id: 'open' });
+  seq.push({ type: 'announce', text: 'תחילת יום תחנות', dur: ANNOUNCE_DUR });
   for (let r = 1; r <= 6; r++) {
-    seq.push({ type: 'announce', text: 'קריאת הנחיות',   id: `inst_ann_${r}`,  round: r });
-    seq.push({ type: 'timer',    text: 'קריאת הנחיות',   duration: 150, id: `inst_${r}`,   round: r }); // 2:30
-    seq.push({ type: 'announce', text: 'כניסה לתחנה',    id: `enter_ann_${r}`, round: r });
-    seq.push({ type: 'timer',    text: 'כניסה לתחנה',    duration: 300, id: `enter_${r}`,  round: r }); // 5:00
-    seq.push({ type: 'announce', text: 'עברו 5 דקות',    id: `mid_${r}`,       round: r });
-    seq.push({ type: 'timer',    text: 'זמן נוסף בתחנה', duration: 300, id: `t2_${r}`,     round: r }); // 5:00
-    seq.push({ type: 'announce', text: r < 6 ? 'יציאה מהתחנה ומעבר לתחנה הבאה' : 'יציאה מהתחנה האחרונה', id: `exit_${r}`, round: r });
+    seq.push({ type: 'announce', text: 'קריאת הנחיות',   dur: ANNOUNCE_DUR, round: r });
+    seq.push({ type: 'timer',    text: 'קריאת הנחיות',   dur: 150,          round: r });
+    seq.push({ type: 'announce', text: 'כניסה לתחנה',    dur: ANNOUNCE_DUR, round: r });
+    seq.push({ type: 'timer',    text: 'כניסה לתחנה',    dur: 300,          round: r });
+    seq.push({ type: 'announce', text: 'עברו 5 דקות',    dur: ANNOUNCE_DUR, round: r });
+    seq.push({ type: 'timer',    text: 'זמן נוסף בתחנה', dur: 300,          round: r });
+    seq.push({ type: 'announce', text: r < 6 ? 'יציאה מהתחנה ומעבר לתחנה הבאה' : 'יציאה מהתחנה האחרונה', dur: ANNOUNCE_DUR, round: r });
   }
-  seq.push({ type: 'announce', text: 'סוף יום תחנות', id: 'close' });
+  seq.push({ type: 'announce', text: 'סוף יום תחנות', dur: ANNOUNCE_DUR });
   return seq;
 }
+
 const SEQUENCE = buildSequence();
+
+// חשב זמן התחלה מצטבר לכל שלב
+const STEP_OFFSETS = []; // שניות מתחילת היום עד תחילת כל שלב
+let acc = 0;
+for (const s of SEQUENCE) {
+  STEP_OFFSETS.push(acc);
+  acc += s.dur;
+}
+const TOTAL_DUR = acc;
+
+// =============================================
+// פונקציה מרכזית: קבל elapsed (שניות מהתחלה) → החזר שלב נוכחי
+// =============================================
+function getStepAt(elapsed) {
+  if (elapsed < 0) return null;
+  if (elapsed >= TOTAL_DUR) return { idx: SEQUENCE.length, done: true };
+  let idx = 0;
+  for (let i = SEQUENCE.length - 1; i >= 0; i--) {
+    if (elapsed >= STEP_OFFSETS[i]) { idx = i; break; }
+  }
+  const step       = SEQUENCE[idx];
+  const stepStart  = STEP_OFFSETS[idx];
+  const stepElapsed = elapsed - stepStart;
+  const remaining  = Math.max(0, step.dur - stepElapsed);
+  return { idx, step, stepStart, stepElapsed, remaining, done: false };
+}
+
+// =============================================
+let audioUnlocked  = false;
+let availableVoice = null;
+let mode           = 'viewer';
+let tickInterval   = null;
+let startTime      = null; // Unix timestamp (seconds) שנשמר ב-Supabase
+let lastSpokenIdx  = -1;
 
 // --- Audio ---
 function pickVoice() {
   const voices = window.speechSynthesis.getVoices();
-  // עדיפות: עברית → ערבית (קרובה) → כל קול
   availableVoice =
     voices.find(v => v.lang.startsWith('he')) ||
-    voices.find(v => v.lang.startsWith('ar')) ||
     voices.find(v => v.lang.startsWith('en')) ||
     voices[0] || null;
 }
-
 function unlockAudio() {
-  // warm-up
   const u = new SpeechSynthesisUtterance(' ');
   u.volume = 0;
   window.speechSynthesis.speak(u);
   pickVoice();
   audioUnlocked = true;
   document.getElementById('soundGate').style.display = 'none';
-  // אם יש state שחיכה — הפעל עכשיו
-  if (currentState) renderState(currentState);
 }
-
 function speak(text) {
-  if (!audioUnlocked) return;
+  if (!audioUnlocked || !window.speechSynthesis) return;
   window.speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
   if (availableVoice) u.voice = availableVoice;
   u.lang = availableVoice?.lang || 'he-IL';
-  u.rate = 0.9;
-  u.volume = 1;
+  u.rate = 0.9; u.volume = 1;
   window.speechSynthesis.speak(u);
 }
 
@@ -288,215 +230,148 @@ function fmt(sec) {
   if (sec < 0) sec = 0;
   return `${Math.floor(sec/60).toString().padStart(2,'0')}:${(sec%60).toString().padStart(2,'0')}`;
 }
-
-function showOverlay(text, sec) {
+function showOverlay(text) {
   const el = document.getElementById('overlay');
   document.getElementById('overlayText').textContent = text;
   el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), sec * 1000 - 400);
+  setTimeout(() => el.classList.remove('show'), (ANNOUNCE_DUR - 0.5) * 1000);
 }
-
 function setMode(m) {
   mode = m;
   document.getElementById('btnViewer').classList.toggle('active', m==='viewer');
   document.getElementById('btnAdmin').classList.toggle('active', m==='admin');
   document.getElementById('adminSection').style.display = m==='admin' ? 'block' : 'none';
 }
-
 function renderSteps(idx) {
   const start = Math.max(0, idx - 1);
   const end   = Math.min(SEQUENCE.length - 1, idx + 4);
   let html = '<div class="steps-title">התקדמות</div><div class="steps-list">';
   for (let i = start; i <= end; i++) {
-    const s = SEQUENCE[i];
+    const s   = SEQUENCE[i];
     const cls = i < idx ? 'done' : i === idx ? 'active' : 'upcoming';
-    const dur = s.type === 'timer' ? ` (${fmt(s.duration)})` : '';
+    const dur = s.type === 'timer' ? ` (${fmt(s.dur)})` : '';
     html += `<div class="step-item ${cls}"><div class="step-dot"></div>${s.text}${dur}</div>`;
   }
   html += '</div>';
   document.getElementById('stepsWrap').innerHTML = html;
 }
-
 function setIdleUI() {
-  clearInterval(localTickInterval);
-  clearTimeout(localTickInterval);
-  localTickInterval = null;
-  // לא מאפסים spokenStepId כאן — רק ב-adminReset
-  document.getElementById('phaseLabel').textContent = 'ממתין להתחלה';
+  clearInterval(tickInterval);
+  document.getElementById('phaseLabel').textContent   = 'ממתין להתחלה';
   document.getElementById('timerDisplay').textContent = '--:--';
-  document.getElementById('timerDisplay').className = 'timer-display idle';
+  document.getElementById('timerDisplay').className   = 'timer-display idle';
   document.getElementById('progressFill').style.width = '0%';
-  document.getElementById('statusDot').className = 'status-dot';
+  document.getElementById('statusDot').className      = 'status-dot';
   document.getElementById('roundBadge').style.display = 'none';
-  document.getElementById('stepsWrap').innerHTML = '';
+  document.getElementById('stepsWrap').innerHTML      = '';
+  document.getElementById('btnStart').textContent     = '▶ התחל יום תחנות';
+  document.getElementById('btnStart').disabled        = false;
+  startTime = null;
+  lastSpokenIdx = -1;
+}
+
+// --- Tick: רץ כל 200ms, מחשב שלב לפי elapsed ---
+function startTick() {
+  clearInterval(tickInterval);
+  tickInterval = setInterval(() => {
+    if (!startTime) return;
+    const elapsed = Date.now()/1000 - startTime;
+    const info = getStepAt(elapsed);
+
+    if (!info || info.done) {
+      setIdleUI();
+      return;
+    }
+
+    const { idx, step, remaining } = info;
+
+    // Badge
+    const b = document.getElementById('roundBadge');
+    if (step.round) { b.textContent = `סבב ${step.round} / 6`; b.style.display = ''; }
+    else b.style.display = 'none';
+
+    // קול — רק פעם אחת לכל שלב
+    if (idx !== lastSpokenIdx && step.type === 'announce') {
+      lastSpokenIdx = idx;
+      speak(step.text);
+      showOverlay(step.text);
+    } else if (idx !== lastSpokenIdx) {
+      lastSpokenIdx = idx;
+    }
+
+    // UI
+    document.getElementById('phaseLabel').textContent = step.text;
+    document.getElementById('statusDot').className    = 'status-dot live';
+    renderSteps(idx);
+
+    if (step.type === 'announce') {
+      document.getElementById('timerDisplay').textContent = '--:--';
+      document.getElementById('timerDisplay').className   = 'timer-display idle';
+      document.getElementById('progressFill').style.width = '0%';
+    } else {
+      document.getElementById('timerDisplay').textContent = fmt(remaining);
+      const pct = (remaining / step.dur) * 100;
+      document.getElementById('progressFill').style.width = pct + '%';
+      const c = remaining <= 30 ? 'danger' : remaining <= step.dur * 0.25 ? 'warn' : '';
+      document.getElementById('timerDisplay').className   = 'timer-display ' + c;
+      document.getElementById('progressFill').className   = 'progress-fill ' + c;
+    }
+  }, 200);
 }
 
 // --- Supabase ---
-async function writeState(state) {
-  await sb.from('timer_state').update({ state }).eq('id', ROW_ID);
-}
 async function readState() {
   const { data } = await sb.from('timer_state').select('state').eq('id', ROW_ID).single();
   return data?.state || null;
 }
-
-// --- Core: render + local tick ---
-// כל דפדפן מנהל את הטיימר שלו לוקאלית.
-// רק המנהל כותב ל-Supabase כשצריך לקדם שלב.
-// הצופים קוראים מ-Supabase בזמן אמת ומעדכנים את עצמם.
-
-function renderState(state) {
-  currentState = state;
-  if (!state || !state.running) { setIdleUI(); return; }
-
-  const idx  = state.stepIndex;
-  if (idx >= SEQUENCE.length) { setIdleUI(); return; }
-  const step = SEQUENCE[idx];
-
-  // Badge סבב — לכולם (שמור סבב אחרון)
-  const b = document.getElementById('roundBadge');
-  if (step.round) {
-    window._lastRound = step.round;
-    b.textContent = `סבב ${step.round} / 6`;
-    b.style.display = '';
-  } else if (window._lastRound && state.running) {
-    b.textContent = `סבב ${window._lastRound} / 6`;
-    b.style.display = '';
-  } else {
-    b.style.display = 'none';
-  }
-
-  renderSteps(idx);
-  document.getElementById('statusDot').className = 'status-dot live';
-
-  // קול — רק אם שלב חדש
-  if (state.stepId !== spokenStepId) {
-    spokenStepId = state.stepId;
-    if (step.type === 'announce') {
-      speak(step.text);
-      showOverlay(step.text, ANNOUNCE_DELAY);
-    }
-  }
-
-  // עצור tick קודם
-  clearInterval(localTickInterval);
-
-  if (step.type === 'announce') {
-    document.getElementById('phaseLabel').textContent = step.text;
-    document.getElementById('timerDisplay').textContent = '--:--';
-    document.getElementById('timerDisplay').className = 'timer-display idle';
-    document.getElementById('progressFill').style.width = '0%';
-
-    // כולם מקדמים לוקאלית
-    const elapsed  = Date.now()/1000 - state.stepStart;
-    const waitLeft = Math.max(0, ANNOUNCE_DELAY - elapsed);
-    localTickInterval = setTimeout(() => autoAdvance(state), waitLeft * 1000);
-
-  } else {
-    // טיימר — tick מקומי
-    localTickInterval = setInterval(() => {
-      const elapsed    = Date.now()/1000 - state.stepStart;
-      const remaining  = Math.max(0, Math.round(step.duration - elapsed));
-      const pct        = Math.max(0, (remaining / step.duration) * 100);
-
-      document.getElementById('phaseLabel').textContent = step.text;
-      document.getElementById('timerDisplay').textContent = fmt(remaining);
-      document.getElementById('progressFill').style.width = pct + '%';
-
-      const c = remaining <= 30 ? 'danger' : remaining <= step.duration * 0.25 ? 'warn' : '';
-      document.getElementById('timerDisplay').className = 'timer-display ' + c;
-      document.getElementById('progressFill').className  = 'progress-fill ' + c;
-
-      if (remaining <= 0) {
-        clearInterval(localTickInterval);
-        autoAdvance(state);
-      }
-    }, 300);
-  }
+async function writeState(state) {
+  await sb.from('timer_state').update({ state }).eq('id', ROW_ID);
 }
 
-// autoAdvance: כל דפדפן מחשב — אבל רק המנהל כותב ל-Supabase
-async function autoAdvance(state) {
-  // אם בינתיים היה איפוס — לא להמשיך
-  if (!currentState || !currentState.running) return;
-  if (currentState.stepId !== state.stepId) return;
-  const nextIdx = state.stepIndex + 1;
-
-  if (nextIdx >= SEQUENCE.length) {
-    // סיום
-    if (mode === 'admin') await writeState({ running: false });
-    setIdleUI();
-    return;
-  }
-
-  const nextStep = SEQUENCE[nextIdx];
-  const newState = {
-    running: true,
-    stepIndex: nextIdx,
-    stepId: nextStep.id,
-    stepStart: Date.now()/1000
-  };
-
-  // הצג מיד לוקאלית
-  renderState(newState);
-  // רק מנהל כותב ל-Supabase (לסנכרון צופים חדשים שנכנסים)
-  if (mode === 'admin') writeState(newState);
-}
-
-// --- Admin buttons ---
+// --- Admin ---
 async function adminStart() {
-  const firstStep = SEQUENCE[0];
-  const state = {
-    running: true,
-    stepIndex: 0,
-    stepId: firstStep.id,
-    stepStart: Date.now()/1000
-  };
+  const state = { running: true, start_time: Date.now()/1000 };
   await writeState(state);
-  renderState(state);
+  startTime = state.start_time;
+  lastSpokenIdx = -1;
+  startTick();
   document.getElementById('btnStart').textContent = '⏳ רץ...';
-  document.getElementById('btnStart').disabled = true;
+  document.getElementById('btnStart').disabled    = true;
 }
-
 async function adminReset() {
-  clearInterval(localTickInterval);
-  spokenStepId = null;
   await writeState({ running: false });
-  currentState = null;
   setIdleUI();
-  document.getElementById('btnStart').textContent = '▶ התחל יום תחנות';
-  document.getElementById('btnStart').disabled = false;
 }
 
-// --- Init ---
+// --- Init + polling ---
 async function init() {
-  // טען קולות (Chrome טוען אותם async)
-  if (window.speechSynthesis.onvoiceschanged !== undefined) {
+  if (window.speechSynthesis.onvoiceschanged !== undefined)
     window.speechSynthesis.onvoiceschanged = pickVoice;
-  }
   pickVoice();
 
-  const state = await readState();
-  if (state) renderState(state); // הצג מיד בטעינה
-
-  // Polling כל 2 שניות
+  const s = await readState();
   document.getElementById('connStatus').textContent = '● מחובר';
-  document.getElementById('connStatus').className = 'conn-status connected';
+  document.getElementById('connStatus').className   = 'conn-status connected';
 
+  if (s?.running && s.start_time) {
+    startTime = s.start_time;
+    startTick();
+  }
+
+  // Polling כל שנייה — רק לזיהוי התחלה/איפוס
   setInterval(async () => {
     const s = await readState();
     if (!s) return;
-    const prevRunning = currentState?.running;
-    const prevStepId  = currentState?.stepId;
-    const changed = s.running !== prevRunning || s.stepId !== prevStepId;
-    if (changed) {
-      // צופים — תמיד מעדכנים
-      // מנהל — רק אם השינוי הגיע מבחוץ (לא ממנו עצמו)
-      if (mode !== 'admin') renderState(s);
-      else if (s.stepId !== spokenStepId) renderState(s);
+    if (s.running && s.start_time && !startTime) {
+      // התחלה חדשה
+      startTime = s.start_time;
+      lastSpokenIdx = -1;
+      startTick();
+    } else if (!s.running && startTime) {
+      // איפוס
+      setIdleUI();
     }
-    if (!changed && s.running) currentState = s;
-  }, 500);
+  }, 1000);
 }
 
 init();
