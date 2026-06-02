@@ -412,6 +412,7 @@ function renderState(state) {
       if (remaining <= 0) {
         clearInterval(localTickInterval);
         if (mode === 'admin') autoAdvance(state);
+        else renderState({...state}); // צופים — עדכן תצוגה מיד (ימתינו ל-poll לשלב הבא)
       }
     }, 300);
   }
@@ -500,7 +501,7 @@ async function init() {
       else if (s.stepId !== spokenStepId) renderState(s);
     }
     if (!changed && s.running) currentState = s;
-  }, 2000);
+  }, 500);
 }
 
 init();
