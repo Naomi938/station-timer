@@ -333,7 +333,14 @@ function startTick() {
     const elapsed = Date.now()/1000 - startTime;
     const info    = getStepAt(elapsed);
 
-    if (!info || info.done) { setIdleUI(); return; }
+    if (!info || info.done) {
+      // כתוב ל-Supabase שנגמר — רק פעם אחת
+      if (startTime) {
+        writeState({ running: false });
+      }
+      setIdleUI();
+      return;
+    }
 
     const { idx, step, remaining } = info;
 
