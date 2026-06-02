@@ -79,8 +79,7 @@
   .btn-start:hover { filter: brightness(1.15); }
   .btn-reset { background: transparent; border: 1px solid var(--border); color: var(--muted); }
   .btn-reset:hover { border-color: var(--danger); color: var(--danger); }
-  .btn-wake { background: transparent; border: 1px solid var(--accent); color: var(--accent); font-size: 13px; padding: 8px; }
-  .btn-wake.active { background: var(--accent-dim); }
+
   .btn:disabled { opacity: 0.3; cursor: not-allowed; }
   .mode-toggle { display: flex; gap: 8px; margin-bottom: 24px; }
   .mode-btn { flex: 1; padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-family: 'Heebo', sans-serif; font-size: 13px; cursor: pointer; transition: all 0.2s; }
@@ -106,7 +105,7 @@
   @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
   .conn-status { font-size: 11px; color: var(--muted); text-align: center; margin-bottom: 16px; }
   .conn-status.connected { color: var(--accent); }
-  .wake-row { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+
 </style>
 </head>
 <body>
@@ -133,11 +132,6 @@
   <div class="mode-toggle">
     <button class="mode-btn active" id="btnViewer" onclick="setMode('viewer')">צפייה</button>
     <button class="mode-btn" id="btnAdmin" onclick="setMode('admin')">ניהול</button>
-  </div>
-
-  <!-- כפתור נעילת מסך — לכולם -->
-  <div class="wake-row">
-    <button class="btn btn-wake" id="btnWake" onclick="toggleWakeLock()">☀ מנע כיבוי מסך</button>
   </div>
 
   <div class="conn-status" id="connStatus">מתחבר...</div>
@@ -214,29 +208,19 @@ let startTime      = null;
 let lastSpokenIdx  = -1;
 let wakeLock       = null;
 
-// --- Wake Lock ---
-async function toggleWakeLock() {
-  const btn = document.getElementById('btnWake');
-  if (wakeLock) {
-    await wakeLock.release();
-    wakeLock = null;
-    btn.textContent = '☀ מנע כיבוי מסך';
-    btn.classList.remove('active');
-  } else {
-    try {
-      wakeLock = await navigator.wakeLock.request('screen');
-      btn.textContent = '☀ מסך נעול';
-      btn.classList.add('active');
-      wakeLock.addEventListener('release', () => {
-        wakeLock = null;
-        btn.textContent = '☀ מנע כיבוי מסך';
-        btn.classList.remove('active');
-      });
-    } catch(e) {
-      btn.textContent = '☀ לא נתמך בדפדפן זה';
-    }
-  }
+// --- Wake Lock — אוטומטי ---
+async function requestWakeLock() {
+  if (!navigator.wakeLock) return;
+  try {
+    wakeLock = await navigator.wakeLock.request('screen');
+    // אם המסך שוחרר (למשל tab הוסתר) — בקש שוב כשחוזרים
+    wakeLock.addEventListener('release', () => { wakeLock = null; });
+  } catch(e) { /* לא נתמך או נדחה */ }
 }
+// כשהמשתמש חוזר לטאב — בקש שוב
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && !wakeLock) requestWakeLock();
+});
 
 // --- Audio ---
 function pickVoice() {
@@ -253,6 +237,7 @@ function unlockAudio() {
   pickVoice();
   audioUnlocked = true;
   document.getElementById('soundGate').style.display = 'none';
+  requestWakeLock(); // הפעל לאחר לחיצת משתמש
 }
 function speak(text) {
   if (!audioUnlocked || !window.speechSynthesis) return;
@@ -314,12 +299,13 @@ function buildJumpList() {
   const list = document.getElementById('jumpList');
   let html = '';
   for (let i = 0; i < SEQUENCE.length; i++) {
-    const s      = SEQUENCE[i];
+    const s = SEQUENCE[i];
+    // הצג רק announce — הם תמיד מגיעים לפני הטיימר
+    if (s.type !== 'announce') continue;
     const label  = s.round ? `סבב ${s.round} — ${s.text}` : s.text;
     const offset = STEP_OFFSETS[i];
-    const icon   = s.type === 'timer' ? '⏱' : '📢';
     html += `<button class="jump-item" onclick="jumpToStep(${i})">
-      <span>${icon} ${label}</span>
+      <span>${label}</span>
       <span class="jump-time">${fmt(offset)}</span>
     </button>`;
   }
